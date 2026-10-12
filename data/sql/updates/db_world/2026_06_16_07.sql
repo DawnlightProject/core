@@ -1,7 +1,4 @@
 -- DB update 2026_06_16_06 -> 2026_06_16_07
---
-UPDATE `spell_dbc` SET `RangeIndex`= 12, `ProcChance` = 101, `Effect_1` = 140, `ImplicitTargetA_1` = 25, `EffectTriggerSpell_1` = 47681 WHERE `Id` = 47680;
-
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 47681;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`,`SourceGroup`,`SourceEntry`,`SourceId`,`ElseGroup`,`ConditionTypeOrReference`,`ConditionTarget`,`ConditionValue1`,`ConditionValue2`,`ConditionValue3`,`NegativeCondition`,`ErrorType`,`ErrorTextId`,`ScriptName`,`Comment`) VALUES
 (13,1,47681,0,0,31,0,3,26811,0,0,0,0,'','Group 0: Spell \'Aggro Ancient Drakkari\' (Effect 0) targets creature \'Ancient Drakkari Warmonger\''),

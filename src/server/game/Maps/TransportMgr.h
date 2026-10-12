@@ -100,7 +100,7 @@ typedef std::map<uint32, TransportAnimation> TransportAnimationContainer;
 
 class TransportMgr
 {
-    friend void LoadDBCStores(std::string const&);
+    friend void LoadDBCStores();
 
 public:
     static TransportMgr* instance();

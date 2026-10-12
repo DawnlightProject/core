@@ -18,7 +18,8 @@
 #ifndef DBCDatabaseLoader_h__
 #define DBCDatabaseLoader_h__
 
-#include "DBCFileLoader.h"
+#include "DBCFormat.h"
+#include <string>
 #include <vector>
 
 struct DBCDatabaseLoader

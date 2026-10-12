@@ -301,6 +301,7 @@ int main(int argc, char** argv)
         METRIC_VALUE("db_queue_login", uint64(LoginDatabase.QueueSize()));
         METRIC_VALUE("db_queue_character", uint64(CharacterDatabase.QueueSize()));
         METRIC_VALUE("db_queue_world", uint64(WorldDatabase.QueueSize()));
+        METRIC_VALUE("db_queue_hotfix", uint64(HotfixDatabase.QueueSize()));
     });
 
     METRIC_EVENT("events", "Worldserver started", "");
@@ -448,7 +449,8 @@ bool StartDB()
     loader
         .AddDatabase(LoginDatabase, "Login")
         .AddDatabase(CharacterDatabase, "Character")
-        .AddDatabase(WorldDatabase, "World");
+        .AddDatabase(WorldDatabase, "World")
+        .AddDatabase(HotfixDatabase, "Hotfix");
 
     if (!loader.Load())
         return false;
@@ -503,6 +505,7 @@ void StopDB()
     CharacterDatabase.Close();
     WorldDatabase.Close();
     LoginDatabase.Close();
+    HotfixDatabase.Close();
 
     sScriptMgr->OnModuleDatabasesClosing();
 

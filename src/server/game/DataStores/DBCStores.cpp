@@ -17,13 +17,14 @@
 
 #include "DBCStores.h"
 #include "BattlegroundMgr.h"
-#include "DBCFileLoader.h"
+#include "DBCFormat.h"
 #include "DBCfmt.h"
 #include "Errors.h"
 #include "LFGMgr.h"
 #include "Log.h"
 #include "SharedDefines.h"
 #include "SpellMgr.h"
+#include "StringFormat.h"
 #include "TransportMgr.h"
 #include "World.h"
 #include <map>
@@ -203,75 +204,39 @@ DBCStorage <WorldMapOverlayEntry> sWorldMapOverlayStore(WorldMapOverlayEntryfmt)
 
 typedef std::list<std::string> StoreProblemList;
 
-uint32 DBCFileCount = 0;
+uint32 DBCStoreCount = 0;
 
-static bool LoadDBC_assert_print(uint32 fsize, uint32 rsize, std::string const& filename)
+static bool LoadDBC_assert_print(uint32 fsize, uint32 rsize, std::string const& tableName)
 {
-    LOG_ERROR("dbc", "Size of '{}' set by format string ({}) not equal size of C++ structure ({}).", filename, fsize, rsize);
+    LOG_ERROR("dbc", "Size of '{}' set by format string ({}) not equal size of C++ structure ({}).", tableName, fsize, rsize);
 
     // ASSERT must fail after function call
     return false;
 }
 
+// Loads one data store from the hotfixes database. The client's .dbc files are
+// no longer read: `sourceName` only names the file the table was built from, so
+// a diagnostic can point at it.
 template<class T>
-inline void LoadDBC(uint32& availableDbcLocales, StoreProblemList& errors, DBCStorage<T>& storage, std::string const& dbcPath, std::string const& filename, char const* dbTable = nullptr)
+inline void LoadDBC(StoreProblemList& errors, DBCStorage<T>& storage, char const* dbTable, char const* sourceName)
 {
     // compatibility format and C++ structure sizes
-    ASSERT(DBCFileLoader::GetFormatRecordSize(storage.GetFormat()) == sizeof(T) || LoadDBC_assert_print(DBCFileLoader::GetFormatRecordSize(storage.GetFormat()), sizeof(T), filename));
+    ASSERT(DBC::GetFormatRecordSize(storage.GetFormat()) == sizeof(T) || LoadDBC_assert_print(DBC::GetFormatRecordSize(storage.GetFormat()), sizeof(T), dbTable));
 
-    ++DBCFileCount;
-    std::string dbcFilename = dbcPath + filename;
-    bool existDBData = false;
+    ++DBCStoreCount;
 
-    if (storage.Load(dbcFilename.c_str()))
-    {
-        for (uint8 i = 0; i < TOTAL_LOCALES; ++i)
-        {
-            if (!(availableDbcLocales & (1 << i)))
-                continue;
-
-            std::string localizedName(dbcPath);
-            localizedName.append(localeNames[i]);
-            localizedName.push_back('/');
-            localizedName.append(filename);
-
-            if (!storage.LoadStringsFrom(localizedName.c_str()))
-                availableDbcLocales &= ~(1 << i);             // mark as not available for speedup next checks
-        }
-    }
-
-    if (dbTable)
-        storage.LoadFromDB(dbTable, storage.GetFormat());
-
-    if (storage.GetNumRows())
-        existDBData = true;
-
-    if (!existDBData)
-    {
-        // sort problematic dbc to (1) non compatible and (2) non-existed
-        if (FILE* f = fopen(dbcFilename.c_str(), "rb"))
-        {
-            std::ostringstream stream;
-            stream << dbcFilename << " exists, and has " << storage.GetFieldCount() << " field(s) (expected " << strlen(storage.GetFormat()) << "). Extracted file might be from wrong client version or a database-update has been forgotten.";
-            std::string buf = stream.str();
-            errors.push_back(buf);
-            fclose(f);
-        }
-        else
-            errors.push_back(dbcFilename);
-    }
+    storage.LoadFromDB(dbTable, storage.GetFormat());
+    if (!storage.GetNumRows())
+        errors.push_back(Acore::StringFormat("`{}` (built from {}) is empty, expected {} column(s)", dbTable, sourceName, strlen(storage.GetFormat())));
 }
 
-void LoadDBCStores(std::string const& dataPath)
+void LoadDBCStores()
 {
     uint32 oldMSTime = getMSTime();
 
-    std::string dbcPath = dataPath + "dbc/";
+    StoreProblemList emptyStores;
 
-    StoreProblemList bad_dbc_files;
-    uint32 availableDbcLocales = 0xFFFFFFFF;
-
-#define LOAD_DBC(store, file, dbtable) LoadDBC(availableDbcLocales, bad_dbc_files, store, dbcPath, file, dbtable)
+#define LOAD_DBC(store, file, dbtable) LoadDBC(emptyStores, store, dbtable, file)
 
     LOAD_DBC(sAreaTableStore,                       "AreaTable.dbc",                        "areatable_dbc");
     LOAD_DBC(sAchievementStore,                     "Achievement.dbc",                      "achievement_dbc");
@@ -633,22 +598,22 @@ void LoadDBCStores(std::string const& dataPath)
         sWMOAreaInfoByTripple[WMOAreaTableKey(entry->rootId, entry->adtId, entry->groupId)] = entry;
 
     // error checks
-    if (bad_dbc_files.size() >= DBCFileCount)
+    if (emptyStores.size() >= DBCStoreCount)
     {
-        LOG_ERROR("dbc", "Incorrect DataDir value in worldserver.conf or ALL required *.dbc files ({}) not found by path: {}dbc", DBCFileCount, dataPath);
+        LOG_ERROR("dbc", "No data store could be read from the hotfixes database. Check HotfixDatabaseInfo in worldserver.conf and that the {} tables of data/sql/base/db_hotfixes have been imported.", DBCStoreCount);
         exit(1);
     }
-    else if (!bad_dbc_files.empty())
+    else if (!emptyStores.empty())
     {
         std::string str;
-        for (StoreProblemList::iterator i = bad_dbc_files.begin(); i != bad_dbc_files.end(); ++i)
+        for (StoreProblemList::iterator i = emptyStores.begin(); i != emptyStores.end(); ++i)
             str += *i + "\n";
 
-        LOG_ERROR("dbc", "Some required *.dbc files ({} from {}) not found or not compatible:\n{}", (uint32)bad_dbc_files.size(), DBCFileCount, str);
+        LOG_ERROR("dbc", "Some required data stores ({} from {}) are missing from the hotfixes database:\n{}", (uint32)emptyStores.size(), DBCStoreCount, str);
         exit(1);
     }
 
-    // Check loaded DBC files proper version
+    // Check the hotfixes database holds 3.3.5a client data
     if (!sAreaTableStore.LookupEntry(4987)             ||       // last area added in 3.3.5a
             !sCharTitlesStore.LookupEntry(177)         ||       // last char title added in 3.3.5a
             !sGemPropertiesStore.LookupEntry(1629)     ||       // last added spell in 3.3.5a
@@ -661,7 +626,7 @@ void LoadDBCStores(std::string const& dataPath)
         exit(1);
     }
 
-    LOG_INFO("server.loading", ">> Initialized {} Data Stores in {} ms", DBCFileCount, GetMSTimeDiffToNow(oldMSTime));
+    LOG_INFO("server.loading", ">> Initialized {} Data Stores in {} ms", DBCStoreCount, GetMSTimeDiffToNow(oldMSTime));
     LOG_INFO("server.loading", " ");
 }
 

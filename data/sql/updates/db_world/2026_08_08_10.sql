@@ -8,6 +8,3 @@ DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` 
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (13, 1, 63882, 0, 0, 31, 0, 3, 33882, 0, 0, 0, 0, '', 'Death Ray Warning Visual targets Death Orb'),
 (13, 1, 63886, 0, 0, 31, 0, 3, 33882, 0, 0, 0, 0, '', 'Death Ray Damage Visual targets Death Orb');
-
--- Give the serverside Death Ray Summon stubs their summon effect (one ray each)
-UPDATE `spell_dbc` SET `Effect_1` = 28, `ImplicitTargetA_1` = 18, `EffectMiscValue_1` = 33881, `EffectMiscValueB_1` = 64 WHERE `ID` IN (63887, 63888, 63889, 63890);

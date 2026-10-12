@@ -73,14 +73,6 @@ INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (63317, 'spell_razorscale_flame_breath'),
 (64021, 'spell_razorscale_flame_breath');
 
--- Spell difficulty entries (core auto-resolves 10/25 man versions)
-DELETE FROM `spelldifficulty_dbc` WHERE `ID` IN (63317, 64709, 64758, 63809);
-INSERT INTO `spelldifficulty_dbc` (`ID`, `DifficultySpellID_1`, `DifficultySpellID_2`, `DifficultySpellID_3`, `DifficultySpellID_4`) VALUES
-(63317, 63317, 64021, 0, 0), -- Flame Breath
-(64709, 64709, 64734, 0, 0), -- Devouring Flame (Ground)
-(64758, 64758, 64759, 0, 0), -- Chain Lightning
-(63809, 63809, 64696, 0, 0); -- Lightning Bolt
-
 -- Conditions for Expedition Trapper Shackle (62646) to only hit Razorscale (33186)
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 13 AND `SourceEntry` = 62646;
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
