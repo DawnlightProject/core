@@ -31,20 +31,14 @@ public:
     DBCStorageBase(char const* fmt);
     virtual ~DBCStorageBase();
 
-    [[nodiscard]] char const* GetFormat() const { return _fileFormat; }
-    [[nodiscard]] uint32 GetFieldCount() const { return _fieldCount; }
+    [[nodiscard]] char const* GetFormat() const { return _recordFormat; }
 
-    virtual bool Load(char const* path) = 0;
-    virtual bool LoadStringsFrom(char const* path) = 0;
     virtual void LoadFromDB(char const* table, char const* format) = 0;
 
 protected:
-    bool Load(char const* path, char**& indexTable);
-    bool LoadStringsFrom(char const* path, char** indexTable);
     void LoadFromDB(char const* table, char const* format, char**& indexTable);
 
-    uint32 _fieldCount;
-    char const* _fileFormat;
+    char const* _recordFormat;
     char* _dataTable;
     std::vector<char*> _stringPool;
     uint32 _indexTableSize;
@@ -89,16 +83,6 @@ public:
     }
 
     [[nodiscard]] uint32 GetNumRows() const { return _indexTableSize; }
-
-    bool Load(char const* path) override
-    {
-        return DBCStorageBase::Load(path, _indexTable.AsChar);
-    }
-
-    bool LoadStringsFrom(char const* path) override
-    {
-        return DBCStorageBase::LoadStringsFrom(path, _indexTable.AsChar);
-    }
 
     void LoadFromDB(char const* table, char const* format) override
     {

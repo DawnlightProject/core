@@ -20,6 +20,9 @@
 #include "Errors.h"
 #include "QueryResult.h"
 #include "StringFormat.h"
+#include <algorithm>
+#include <cstring>
+#include <memory>
 
 DBCDatabaseLoader::DBCDatabaseLoader(char const* tableName, char const* dbcFormatString, std::vector<char*>& stringPool)
     : _sqlTableName(tableName),
@@ -30,7 +33,7 @@ DBCDatabaseLoader::DBCDatabaseLoader(char const* tableName, char const* dbcForma
 {
     // Get sql index position
     int32 indexPos = -1;
-    _recordSize = DBCFileLoader::GetFormatRecordSize(_dbcFormat, &indexPos);
+    _recordSize = DBC::GetFormatRecordSize(_dbcFormat, &indexPos);
     if (indexPos >= 0)
         _sqlIndexPos = indexPos;
 
@@ -39,10 +42,10 @@ DBCDatabaseLoader::DBCDatabaseLoader(char const* tableName, char const* dbcForma
 
 char* DBCDatabaseLoader::Load(uint32& records, char**& indexTable)
 {
-    std::string query = Acore::StringFormat("SELECT * FROM `{}` ORDER BY `ID` DESC", _sqlTableName);
+    std::string query = Acore::StringFormat("SELECT * FROM `{}`", _sqlTableName);
 
     // no error if empty set
-    QueryResult result = WorldDatabase.Query(query);
+    QueryResult result = HotfixDatabase.Query(query);
     if (!result)
         return nullptr;
 
@@ -53,31 +56,19 @@ char* DBCDatabaseLoader::Load(uint32& records, char**& indexTable)
         return nullptr;
     }
 
-    // Resize index table
-    // database query *MUST* contain ORDER BY `index_field` DESC clause
-    uint32 indexTableSize = std::max(records, (*result)[_sqlIndexPos].Get<uint32>() + 1);
-    if (indexTableSize > records)
-    {
-        char** tmpIdxTable = new char* [indexTableSize];
-        memset(tmpIdxTable, 0, indexTableSize * sizeof(char*));
-        memcpy(tmpIdxTable, indexTable, records * sizeof(char*));
-        delete[] indexTable;
-        indexTable = tmpIdxTable;
-    }
-
     std::unique_ptr<char[]> dataTable = std::make_unique<char[]>(result->GetRowCount() * _recordSize);
     std::unique_ptr<uint32[]> newIndexes = std::make_unique<uint32[]>(result->GetRowCount());
     uint32 newRecords = 0;
+    uint32 maxIndex = 0;
 
     // Insert sql data into the data array
     do
     {
         Field* fields = result->Fetch();
         uint32 indexValue = fields[_sqlIndexPos].Get<uint32>();
-        char* oldDataValue = indexTable[indexValue];
 
-        // If exist in DBC file override from DB
         newIndexes[newRecords] = indexValue;
+        maxIndex = std::max(maxIndex, indexValue);
         char* dataValue = &dataTable[newRecords++ * _recordSize];
 
         uint32 dataOffset = 0;
@@ -102,12 +93,7 @@ char* DBCDatabaseLoader::Load(uint32& records, char**& indexTable)
                     dataOffset += sizeof(uint8);
                     break;
                 case FT_STRING:
-                    // an empty column means "not overridden", not "blank it"
-                    if (fields[sqlColumnNumber].Get<std::string>().empty() && oldDataValue)
-                        *reinterpret_cast<char**>(&dataValue[dataOffset]) = *reinterpret_cast<char**>(&oldDataValue[dataOffset]);
-                    else
-                        *reinterpret_cast<char**>(&dataValue[dataOffset]) = CloneStringToPool(fields[sqlColumnNumber].Get<std::string>());
-
+                    *reinterpret_cast<char**>(&dataValue[dataOffset]) = CloneStringToPool(fields[sqlColumnNumber].Get<std::string>());
                     dataOffset += sizeof(char*);
                     break;
                 case FT_SORT:
@@ -127,6 +113,19 @@ char* DBCDatabaseLoader::Load(uint32& records, char**& indexTable)
     } while (result->NextRow());
 
     ASSERT(newRecords == result->GetRowCount());
+
+    // The index table has to span the largest index in the table, which is not
+    // necessarily the largest id: a few stores are keyed by another column.
+    uint32 const indexTableSize = std::max(records, maxIndex + 1);
+    if (indexTableSize > records)
+    {
+        char** tmpIdxTable = new char* [indexTableSize];
+        memset(tmpIdxTable, 0, indexTableSize * sizeof(char*));
+        if (indexTable)
+            memcpy(tmpIdxTable, indexTable, records * sizeof(char*));
+        delete[] indexTable;
+        indexTable = tmpIdxTable;
+    }
 
     // insert new records to index table
     for (uint32 i = 0; i < newRecords; ++i)

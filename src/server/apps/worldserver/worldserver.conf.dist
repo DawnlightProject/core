@@ -110,6 +110,7 @@ BindIP = "0.0.0.0"
 #    LoginDatabaseInfo
 #    WorldDatabaseInfo
 #    CharacterDatabaseInfo
+#    HotfixDatabaseInfo
 #        Description: Database connection settings for the world server.
 #        Example:     "hostname;port;username;password;database"
 #                     ".;somenumber;username;password;database"
@@ -119,38 +120,46 @@ BindIP = "0.0.0.0"
 #        Default:     "127.0.0.1;3306;acore;acore;acore_auth"       - (LoginDatabaseInfo)
 #                     "127.0.0.1;3306;acore;acore;acore_world"      - (WorldDatabaseInfo)
 #                     "127.0.0.1;3306;acore;acore;acore_characters" - (CharacterDatabaseInfo)
+#                     "127.0.0.1;3306;acore;acore;acore_hotfixes"   - (HotfixDatabaseInfo)
 
 LoginDatabaseInfo     = "127.0.0.1;3306;acore;acore;acore_auth"
 WorldDatabaseInfo     = "127.0.0.1;3306;acore;acore;acore_world"
 CharacterDatabaseInfo = "127.0.0.1;3306;acore;acore;acore_characters"
+HotfixDatabaseInfo    = "127.0.0.1;3306;acore;acore;acore_hotfixes"
 
 #
 #    LoginDatabase.WorkerThreads
 #    WorldDatabase.WorkerThreads
 #    CharacterDatabase.WorkerThreads
+#    HotfixDatabase.WorkerThreads
 #        Description: The amount of worker threads spawned to handle asynchronous (delayed) MySQL
 #                     statements. Each worker thread is mirrored with its own connection to the
 #                     MySQL server and their own thread on the MySQL server.
 #        Default:     1 - (LoginDatabase.WorkerThreads)
 #                     1 - (WorldDatabase.WorkerThreads)
 #                     1 - (CharacterDatabase.WorkerThreads)
+#                     1 - (HotfixDatabase.WorkerThreads)
 
 LoginDatabase.WorkerThreads     = 1
 WorldDatabase.WorkerThreads     = 1
 CharacterDatabase.WorkerThreads = 1
+HotfixDatabase.WorkerThreads    = 1
 
 #
 #    LoginDatabase.SynchThreads
 #    WorldDatabase.SynchThreads
 #    CharacterDatabase.SynchThreads
+#    HotfixDatabase.SynchThreads
 #        Description: The amount of MySQL connections spawned to handle.
 #        Default:     1 - (LoginDatabase.SynchThreads)
 #                     1 - (WorldDatabase.SynchThreads)
 #                     1 - (CharacterDatabase.SynchThreads)
+#                     1 - (HotfixDatabase.SynchThreads)
 
 LoginDatabase.SynchThreads     = 1
 WorldDatabase.SynchThreads     = 1
 CharacterDatabase.SynchThreads = 1
+HotfixDatabase.SynchThreads    = 1
 
 #
 #    MaxPingTime
@@ -292,11 +301,12 @@ FlashAtStart = 1
 #                     DATABASE_LOGIN     = 1, Auth database
 #                     DATABASE_CHARACTER = 2, Character database
 #                     DATABASE_WORLD     = 4, World database
-#        Default:     7 - (All enabled)
-#                     4 - (Enable world only)
-#                     0 - (All disabled)
+#                     DATABASE_HOTFIX    = 8, Hotfixes database
+#        Default:     15 - (All enabled)
+#                     4  - (Enable world only)
+#                     0  - (All disabled)
 
-Updates.EnableDatabases = 7
+Updates.EnableDatabases = 15
 
 #
 #    Updates.AutoSetup
@@ -4335,10 +4345,11 @@ ChatFakeMessagePreventing = 1
 #                     -1 - (Only verify validity of link data, but permit use of custom colors)
 #        Default:      0 - (Only verify that link data and color are valid without checking text)
 #                      1 - (Additionally verifies that the link text matches the provided data)
-#        Note:        If this is set to '1', you must additionally provide .dbc files for all
-#                     client locales that are in use on your server.
-#                     If any files are missing, messages with links from clients using those
-#                     locales will likely be blocked by the server.
+#        Note:        If this is set to '1', the hotfixes database must carry the localized
+#                     names for every client locale in use on your server, in the matching
+#                     `*_Lang_<locale>` columns.
+#                     If a locale is left blank, messages with links from clients using that
+#                     locale will likely be blocked by the server.
 
 ChatStrictLinkChecking.Severity = 0
 

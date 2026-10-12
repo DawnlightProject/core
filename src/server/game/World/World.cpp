@@ -382,7 +382,7 @@ void World::SetInitialWorldSettings()
 
     ///- Load the DBC files
     LOG_INFO("server.loading", "Initialize Data Stores...");
-    LoadDBCStores(_dataPath);
+    LoadDBCStores();
     DetectDBCLang();
 
     // Load cinematic cameras
@@ -1335,6 +1335,7 @@ void World::Update(uint32 diff)
         CharacterDatabase.KeepAlive();
         LoginDatabase.KeepAlive();
         WorldDatabase.KeepAlive();
+        HotfixDatabase.KeepAlive();
         sScriptMgr->OnModuleDatabasesKeepAlive();
     }
 

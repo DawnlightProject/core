@@ -242,14 +242,22 @@ public:
             Field* fields = resW->Fetch();
             lwdb = fields[0].Get<std::string>();
         }
+        std::string lhdb = "No updates found!";
+        if (QueryResult resH = HotfixDatabase.Query("SELECT name FROM updates ORDER BY name DESC LIMIT 1"))
+        {
+            Field* fields = resH->Fetch();
+            lhdb = fields[0].Get<std::string>();
+        }
 
         handler->PSendSysMessage("Latest LoginDatabase update: {}", lldb);
         handler->PSendSysMessage("Latest CharacterDatabase update: {}", lcdb);
         handler->PSendSysMessage("Latest WorldDatabase update: {}", lwdb);
+        handler->PSendSysMessage("Latest HotfixDatabase update: {}", lhdb);
 
         handler->PSendSysMessage("LoginDatabase queue size: {}", LoginDatabase.QueueSize());
         handler->PSendSysMessage("CharacterDatabase queue size: {}", CharacterDatabase.QueueSize());
         handler->PSendSysMessage("WorldDatabase queue size: {}", WorldDatabase.QueueSize());
+        handler->PSendSysMessage("HotfixDatabase queue size: {}", HotfixDatabase.QueueSize());
 
         if (Acore::Module::GetEnableModulesList().empty())
             handler->PSendSysMessage("No modules are enabled");

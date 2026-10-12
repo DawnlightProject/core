@@ -7,9 +7,6 @@ DELETE FROM `spell_script_names` WHERE `spell_id` = 48268;
 INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
 (48268, 'spell_q12211_container_of_rats');
 
--- Let Them Not Rise!: Skeletal Transform, transform into Skeleton (6412)
-UPDATE `spell_dbc` SET `Effect_1` = 6, `ImplicitTargetA_1` = 1, `EffectAura_1` = 56, `EffectMiscValue_1` = 6412 WHERE `ID` = 48255;
-
 DELETE FROM `conditions` WHERE `SourceTypeOrReferenceId` = 17 AND `SourceEntry` = 48268 AND `ConditionTypeOrReference` IN (1, 104);
 INSERT INTO `conditions` (`SourceTypeOrReferenceId`, `SourceGroup`, `SourceEntry`, `SourceId`, `ElseGroup`, `ConditionTypeOrReference`, `ConditionTarget`, `ConditionValue1`, `ConditionValue2`, `ConditionValue3`, `NegativeCondition`, `ErrorType`, `ErrorTextId`, `ScriptName`, `Comment`) VALUES
 (17, 0, 48268, 0, 0, 104, 1, 1, 1, 0, 1, 0, 0, '', 'Target must not have been eaten by rats yet (AI data 1 = 1)'),

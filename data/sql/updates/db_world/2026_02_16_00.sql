@@ -18,10 +18,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (30680, 0, 3, 0, 6, 0, 100, 0, 0, 0, 0, 0, 0, 0, 11, 57742, 2, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Onyx Brood General - On Just Died - Cast \'Avenging Fury\''),
 (30680, 0, 4, 0, 37, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Onyx Brood General - On Initialize - Say Line 0');
 
-DELETE FROM `spelldifficulty_dbc` WHERE `ID`=57733;
-INSERT INTO `spelldifficulty_dbc` (`ID`, `DifficultySpellID_1`, `DifficultySpellID_2`, `DifficultySpellID_3`, `DifficultySpellID_4`) VALUES
-(57733, 57733, 58942, 0, 0);
-
 DELETE FROM `creature_text` WHERE `CreatureID`=30680;
 INSERT INTO `creature_text` (`CreatureID`, `groupid`, `id`, `text`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `comment`, `BroadcastTextId`) VALUES
 (30680, 0, 0, 'Brood Guardians reporting in!', 14, 0, 100, 0, 0, 0, 'Onyx Brood General', 31397);
@@ -36,11 +32,6 @@ INSERT INTO `smart_scripts` (`entryorguid`, `source_type`, `id`, `link`, `event_
 (30453, 0, 3, 0, 61, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Onyx Sanctum Guardian - Target Between 25-30% Health - Say Line 0'),
 (30453, 0, 4, 0, 37, 0, 100, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'Onyx Sanctum Guardian - On Initialize - Say Line 1');
 
-DELETE FROM `spelldifficulty_dbc` WHERE `ID` IN (58948, 57728);
-INSERT INTO `spelldifficulty_dbc` (`ID`, `DifficultySpellID_1`, `DifficultySpellID_2`, `DifficultySpellID_3`, `DifficultySpellID_4`) VALUES
-(58948, 58948, 39647, 0, 0),
-(57728, 57728, 58947, 0, 0);
-
 DELETE FROM `creature_text` WHERE `CreatureID`=30453;
 INSERT INTO `creature_text` (`CreatureID`, `groupid`, `id`, `text`, `type`, `language`, `probability`, `emote`, `duration`, `sound`, `comment`, `BroadcastTextId`) VALUES
 (30453, 0, 0,  '%s goes into a frenzy!', 16, 0, 100, 0, 0, 0, 'Onyx Sanctum Guardian',  38630),
@@ -51,10 +42,6 @@ UPDATE `creature_template` SET `minlevel`=80, `maxlevel`=80, `flags_extra` = `fl
 DELETE FROM `creature_template_movement` WHERE `CreatureId`=30702;
 INSERT INTO `creature_template_movement` (`CreatureId`, `Ground`, `Swim`, `Flight`, `Rooted`, `Chase`, `Random`) VALUES
 (30702, 1, 0, 1, 0, 0, 0);
-
-DELETE FROM `spelldifficulty_dbc` WHERE `ID`=57750;
-INSERT INTO `spelldifficulty_dbc` (`ID`, `DifficultySpellID_1`, `DifficultySpellID_2`, `DifficultySpellID_3`, `DifficultySpellID_4`) VALUES
-(57750, 57750, 58037, 0, 0);
 
 DELETE FROM `creature_template_addon` WHERE (`entry` = 30702);
 INSERT INTO `creature_template_addon` (`entry`, `path_id`, `mount`, `bytes1`, `bytes2`, `emote`, `visibilityDistanceType`, `auras`) VALUES
